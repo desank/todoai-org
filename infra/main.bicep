@@ -41,9 +41,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {
           addressPrefix: '10.10.2.0/24'
           delegations: [
             {
-              name: 'acaDelegation'
+              name: 'webAppDelegation'
               properties: {
-                serviceName: 'Microsoft.App/managedEnvironments'
+                serviceName: 'Microsoft.Web/serverFarms'
               }
             }
           ]
@@ -151,19 +151,19 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
       secrets: [
         {
-          name: 'POSTGRES_HOST'
+          name: 'postgres-host'
           value: postgres.properties.fullyQualifiedDomainName
         }
         {
-          name: 'POSTGRES_DB'
+          name: 'postgres-db'
           value: postgresDbName
         }
         {
-          name: 'POSTGRES_USER'
+          name: 'postgres-user'
           value: postgresAdminUsername
         }
         {
-          name: 'POSTGRES_PASSWORD'
+          name: 'postgres-password'
           value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/postgres-password)'
         }
       ]
