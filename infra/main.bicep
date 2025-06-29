@@ -205,16 +205,42 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   }
 }
 
-resource staticWebApp 'Microsoft.Web/staticSites@2022-03-01' = {
-  name: '${environmentName}-web'
+// Azure App Service Plan for frontend
+resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
+  name: '${environmentName}-frontend-asp'
   location: location
   tags: tags
   sku: {
-    name: 'Standard'
-    tier: 'Standard'
+    name: 'B1'
+    tier: 'Basic'
   }
-  properties: {}
 }
 
-output STATIC_WEB_APP_URL string = staticWebApp.properties.defaultHostname
+// Azure App Service (Web App) for Flutter frontend
+resource frontendWebApp 'Microsoft.Web/sites@2022-03-01' = {
+  name: '${environmentName}-frontend'
+  location: location
+  tags: tags
+  kind: 'app'
+  properties: {
+    serverFarmId: frontendAppServicePlan.id
+    httpsOnly: true
+    siteConfig: {
+      linuxFxVersion: 'NODE|18-lts' // Placeholder, will serve static files
+      appSettings: [
+        {
+          name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
+          value: 'true'
+        }
+        {
+          name: 'WEBSITE_RUN_FROM_PACKAGE'
+          value: '1'
+        }
+      ]
+    }
+  }
+  dependsOn: [frontendAppServicePlan]
+}
+
+output FRONTEND_WEB_APP_URL string = 'https://${frontendWebApp.properties.defaultHostName}'
 output API_URL string = apiContainerApp.properties.configuration.ingress.fqdn

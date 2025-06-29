@@ -97,6 +97,22 @@ jobs:
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
 
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Build Flutter Web App
+        working-directory: src/flutter_app
+        run: flutter build web --release
+
+      - name: Deploy to Azure Web App (Frontend)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
+          slot-name: 'production'
+          package: src/flutter_app/build/web
+
   deploy-test:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test'
     runs-on: ubuntu-latest
@@ -172,6 +188,22 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Build Flutter Web App
+        working-directory: src/flutter_app
+        run: flutter build web --release
+
+      - name: Deploy to Azure Web App (Frontend)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
+          slot-name: 'production'
+          package: src/flutter_app/build/web
 
   deploy-staging:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'
@@ -249,6 +281,22 @@ jobs:
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
 
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Build Flutter Web App
+        working-directory: src/flutter_app
+        run: flutter build web --release
+
+      - name: Deploy to Azure Web App (Frontend)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
+          slot-name: 'production'
+          package: src/flutter_app/build/web
+
   deploy-preprod:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'preprod'
     runs-on: ubuntu-latest
@@ -325,6 +373,22 @@ jobs:
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
 
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Build Flutter Web App
+        working-directory: src/flutter_app
+        run: flutter build web --release
+
+      - name: Deploy to Azure Web App (Frontend)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
+          slot-name: 'production'
+          package: src/flutter_app/build/web
+
   deploy-production:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
     runs-on: ubuntu-latest
@@ -400,3 +464,19 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Build Flutter Web App
+        working-directory: src/flutter_app
+        run: flutter build web --release
+
+      - name: Deploy to Azure Web App (Frontend)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
+          slot-name: 'production'
+          package: src/flutter_app/build/web
