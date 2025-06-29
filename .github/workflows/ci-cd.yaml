@@ -73,10 +73,6 @@ jobs:
           inlineScript: |
             az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
 
-      - name: Debug Show last 20 lines of main.bicep
-        run: |
-          tail -n 20 infra/main.bicep
-
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -165,9 +161,6 @@ jobs:
         with:
           inlineScript: |
             az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: Debug Show last 20 lines of main.bicep
-        run: tail -n 20 infra/main.bicep
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
@@ -258,9 +251,6 @@ jobs:
           inlineScript: |
             az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
 
-      - name: Debug Show last 20 lines of main.bicep
-        run: tail -n 20 infra/main.bicep
-
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -350,9 +340,6 @@ jobs:
           inlineScript: |
             az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
 
-      - name: Debug Show last 20 lines of main.bicep
-        run: tail -n 20 infra/main.bicep
-
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -441,9 +428,6 @@ jobs:
         with:
           inlineScript: |
             az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: Debug Show last 20 lines of main.bicep
-        run: tail -n 20 infra/main.bicep
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
