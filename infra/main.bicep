@@ -226,7 +226,6 @@ resource frontendWebApp 'Microsoft.Web/sites@2022-03-01' = {
     serverFarmId: frontendAppServicePlan.id
     httpsOnly: true
     siteConfig: {
-      linuxFxVersion: 'NODE|18-lts' // Placeholder, will serve static files
       appSettings: [
         {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
