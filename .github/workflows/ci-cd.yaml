@@ -55,14 +55,16 @@ jobs:
         run: >
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
-      - name: Ensure azd environment exists
+      - name: Create azd environment
         run: |
-          echo "azd env list output (debug):"
-          azd env list
-          if ! azd env list | grep -q "$AZURE_ENV_NAME"; then
-            echo "ERROR: azd environment '$AZURE_ENV_NAME' does not exist. Please create it before running this workflow."
-            exit 1
-          fi
+          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
+
+      - name: Set azd environment variables
+        run: |
+          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
+          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
+          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
+          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
@@ -119,12 +121,16 @@ jobs:
         run: >
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
-      - name: Ensure azd environment exists
+      - name: Create azd environment
         run: |
-          if ! azd env list | grep -q "$AZURE_ENV_NAME"; then
-            echo "ERROR: azd environment '$AZURE_ENV_NAME' does not exist. Please create it before running this workflow."
-            exit 1
-          fi
+          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
+
+      - name: Set azd environment variables
+        run: |
+          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
+          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
+          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
+          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
@@ -181,12 +187,16 @@ jobs:
         run: >
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
-      - name: Ensure azd environment exists
+      - name: Create azd environment
         run: |
-          if ! azd env list | grep -q "$AZURE_ENV_NAME"; then
-            echo "ERROR: azd environment '$AZURE_ENV_NAME' does not exist. Please create it before running this workflow."
-            exit 1
-          fi
+          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
+
+      - name: Set azd environment variables
+        run: |
+          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
+          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
+          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
+          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
@@ -243,12 +253,16 @@ jobs:
         run: >
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
-      - name: Ensure azd environment exists
+      - name: Create azd environment
         run: |
-          if ! azd env list | grep -q "$AZURE_ENV_NAME"; then
-            echo "ERROR: azd environment '$AZURE_ENV_NAME' does not exist. Please create it before running this workflow."
-            exit 1
-          fi
+          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
+
+      - name: Set azd environment variables
+        run: |
+          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
+          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
+          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
+          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
@@ -305,12 +319,16 @@ jobs:
         run: >
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
-      - name: Ensure azd environment exists
+      - name: Create azd environment
         run: |
-          if ! azd env list | grep -q "$AZURE_ENV_NAME"; then
-            echo "ERROR: azd environment '$AZURE_ENV_NAME' does not exist. Please create it before running this workflow."
-            exit 1
-          fi
+          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
+
+      - name: Set azd environment variables
+        run: |
+          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
+          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
+          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
+          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
