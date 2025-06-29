@@ -57,6 +57,8 @@ jobs:
 
       - name: Ensure azd environment exists
         run: |
+          echo "azd env list output (debug):"
+          azd env list
           if ! azd env list | grep -q "$AZURE_ENV_NAME"; then
             echo "ERROR: azd environment '$AZURE_ENV_NAME' does not exist. Please create it before running this workflow."
             exit 1
