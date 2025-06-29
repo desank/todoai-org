@@ -53,10 +53,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision
+        run: azd provision --environment $AZURE_ENV_NAME
 
       - name: azd deploy
-        run: azd deploy
+        run: azd deploy --environment $AZURE_ENV_NAME
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
@@ -105,10 +105,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision
+        run: azd provision --environment $AZURE_ENV_NAME
 
       - name: azd deploy
-        run: azd deploy
+        run: azd deploy --environment $AZURE_ENV_NAME
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
@@ -157,10 +157,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision
+        run: azd provision --environment $AZURE_ENV_NAME
 
       - name: azd deploy
-        run: azd deploy
+        run: azd deploy --environment $AZURE_ENV_NAME
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
@@ -209,10 +209,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision
+        run: azd provision --environment $AZURE_ENV_NAME
 
       - name: azd deploy
-        run: azd deploy
+        run: azd deploy --environment $AZURE_ENV_NAME
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
@@ -261,10 +261,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision
+        run: azd provision --environment $AZURE_ENV_NAME
 
       - name: azd deploy
-        run: azd deploy
+        run: azd deploy --environment $AZURE_ENV_NAME
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
