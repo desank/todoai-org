@@ -5,14 +5,212 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (dev, test, staging, preprod, production)'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - test
+          - staging
+          - preprod
+          - production
 
 jobs:
-  deploy:
+  deploy-dev:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev'
     runs-on: ubuntu-latest
+    environment: dev
     permissions:
       id-token: write
       contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Azure CLI
+        uses: azure/cli@v2
+
+      - name: Set up azd
+        uses: Azure/azure-dev@v1
+
+      - name: azd login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: azd provision
+        run: azd provision
+
+      - name: azd deploy
+        run: azd deploy
+
+      - name: Get PostgreSQL password from Key Vault
+        id: get-pgpass
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
+            echo "::add-mask::$PGPASSWORD"
+            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
+
+      - name: Run DB schema migration
+        env:
+          PGPASSWORD: ${{ env.PGPASSWORD }}
+        run: |
+          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+
+  deploy-test:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test'
+    runs-on: ubuntu-latest
+    environment: test
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Azure CLI
+        uses: azure/cli@v2
+
+      - name: Set up azd
+        uses: Azure/azure-dev@v1
+
+      - name: azd login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: azd provision
+        run: azd provision
+
+      - name: azd deploy
+        run: azd deploy
+
+      - name: Get PostgreSQL password from Key Vault
+        id: get-pgpass
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
+            echo "::add-mask::$PGPASSWORD"
+            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
+
+      - name: Run DB schema migration
+        env:
+          PGPASSWORD: ${{ env.PGPASSWORD }}
+        run: |
+          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+
+  deploy-staging:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Azure CLI
+        uses: azure/cli@v2
+
+      - name: Set up azd
+        uses: Azure/azure-dev@v1
+
+      - name: azd login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: azd provision
+        run: azd provision
+
+      - name: azd deploy
+        run: azd deploy
+
+      - name: Get PostgreSQL password from Key Vault
+        id: get-pgpass
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
+            echo "::add-mask::$PGPASSWORD"
+            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
+
+      - name: Run DB schema migration
+        env:
+          PGPASSWORD: ${{ env.PGPASSWORD }}
+        run: |
+          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+
+  deploy-preprod:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'preprod'
+    runs-on: ubuntu-latest
+    environment: preprod
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Azure CLI
+        uses: azure/cli@v2
+
+      - name: Set up azd
+        uses: Azure/azure-dev@v1
+
+      - name: azd login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+      - name: azd provision
+        run: azd provision
+
+      - name: azd deploy
+        run: azd deploy
+
+      - name: Get PostgreSQL password from Key Vault
+        id: get-pgpass
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
+            echo "::add-mask::$PGPASSWORD"
+            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
+
+      - name: Run DB schema migration
+        env:
+          PGPASSWORD: ${{ env.PGPASSWORD }}
+        run: |
+          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+
+  deploy-production:
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
+    runs-on: ubuntu-latest
     environment: production
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
