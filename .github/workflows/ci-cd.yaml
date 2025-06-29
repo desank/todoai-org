@@ -48,6 +48,10 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
+      - name: azd auth login (OIDC)
+        run: >
+          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
+
       - name: azd provision
         run: azd provision
 
@@ -95,6 +99,10 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
+
+      - name: azd auth login (OIDC)
+        run: >
+          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
         run: azd provision
@@ -144,6 +152,10 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
+      - name: azd auth login (OIDC)
+        run: >
+          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
+
       - name: azd provision
         run: azd provision
 
@@ -192,6 +204,10 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
 
+      - name: azd auth login (OIDC)
+        run: >
+          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
+
       - name: azd provision
         run: azd provision
 
@@ -239,6 +255,10 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: true
+
+      - name: azd auth login (OIDC)
+        run: >
+          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
         run: azd provision
