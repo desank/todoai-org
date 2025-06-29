@@ -21,7 +21,7 @@ on:
 
 jobs:
   deploy-dev:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev'
+    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev') || github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: dev
     permissions:
@@ -33,6 +33,9 @@ jobs:
 
       - name: Set up Azure CLI
         uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az --version
 
       - name: Set up azd
         uses: Azure/setup-azd@v2
@@ -52,7 +55,6 @@ jobs:
         run: azd deploy
 
       - name: Get PostgreSQL password from Key Vault
-        id: get-pgpass
         uses: azure/cli@v2
         with:
           inlineScript: |
@@ -79,6 +81,9 @@ jobs:
 
       - name: Set up Azure CLI
         uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az --version
 
       - name: Set up azd
         uses: Azure/azure-dev@v1
@@ -98,7 +103,6 @@ jobs:
         run: azd deploy
 
       - name: Get PostgreSQL password from Key Vault
-        id: get-pgpass
         uses: azure/cli@v2
         with:
           inlineScript: |
@@ -125,6 +129,9 @@ jobs:
 
       - name: Set up Azure CLI
         uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az --version
 
       - name: Set up azd
         uses: Azure/azure-dev@v1
@@ -144,7 +151,6 @@ jobs:
         run: azd deploy
 
       - name: Get PostgreSQL password from Key Vault
-        id: get-pgpass
         uses: azure/cli@v2
         with:
           inlineScript: |
@@ -171,6 +177,9 @@ jobs:
 
       - name: Set up Azure CLI
         uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az --version
 
       - name: Set up azd
         uses: Azure/azure-dev@v1
@@ -190,7 +199,6 @@ jobs:
         run: azd deploy
 
       - name: Get PostgreSQL password from Key Vault
-        id: get-pgpass
         uses: azure/cli@v2
         with:
           inlineScript: |
@@ -217,6 +225,9 @@ jobs:
 
       - name: Set up Azure CLI
         uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az --version
 
       - name: Set up azd
         uses: Azure/azure-dev@v1
@@ -236,7 +247,6 @@ jobs:
         run: azd deploy
 
       - name: Get PostgreSQL password from Key Vault
-        id: get-pgpass
         uses: azure/cli@v2
         with:
           inlineScript: |
