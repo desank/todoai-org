@@ -70,6 +70,12 @@ jobs:
         run: |
           tail -n 20 infra/main.bicep
 
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
+
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -89,12 +95,6 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Show Bicep version
-        run: az bicep version
-
-      - name: Try bicep build directly
-        run: az bicep build --file infra/main.bicep
 
   deploy-test:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test'
@@ -145,6 +145,12 @@ jobs:
       - name: Debug Show last 20 lines of main.bicep
         run: tail -n 20 infra/main.bicep
 
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
+
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -164,12 +170,6 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Show Bicep version
-        run: az bicep version
-
-      - name: Try bicep build directly
-        run: az bicep build --file infra/main.bicep
 
   deploy-staging:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'
@@ -220,6 +220,12 @@ jobs:
       - name: Debug Show last 20 lines of main.bicep
         run: tail -n 20 infra/main.bicep
 
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
+
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -239,12 +245,6 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Show Bicep version
-        run: az bicep version
-
-      - name: Try bicep build directly
-        run: az bicep build --file infra/main.bicep
 
   deploy-preprod:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'preprod'
@@ -295,6 +295,12 @@ jobs:
       - name: Debug Show last 20 lines of main.bicep
         run: tail -n 20 infra/main.bicep
 
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
+
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -314,12 +320,6 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Show Bicep version
-        run: az bicep version
-
-      - name: Try bicep build directly
-        run: az bicep build --file infra/main.bicep
 
   deploy-production:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
@@ -370,6 +370,12 @@ jobs:
       - name: Debug Show last 20 lines of main.bicep
         run: tail -n 20 infra/main.bicep
 
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
+
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -389,9 +395,3 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Show Bicep version
-        run: az bicep version
-
-      - name: Try bicep build directly
-        run: az bicep build --file infra/main.bicep
