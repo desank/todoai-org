@@ -67,6 +67,12 @@ jobs:
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
 
+      - name: Ensure Resource Group Exists
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
+
       - name: Debug Show last 20 lines of main.bicep
         run: |
           tail -n 20 infra/main.bicep
@@ -138,6 +144,12 @@ jobs:
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
 
+      - name: Ensure Resource Group Exists
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
+
       - name: Debug Show last 20 lines of main.bicep
         run: tail -n 20 infra/main.bicep
 
@@ -207,6 +219,12 @@ jobs:
           azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
+
+      - name: Ensure Resource Group Exists
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
 
       - name: Debug Show last 20 lines of main.bicep
         run: tail -n 20 infra/main.bicep
@@ -278,6 +296,12 @@ jobs:
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
 
+      - name: Ensure Resource Group Exists
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
+
       - name: Debug Show last 20 lines of main.bicep
         run: tail -n 20 infra/main.bicep
 
@@ -347,6 +371,12 @@ jobs:
           azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
+
+      - name: Ensure Resource Group Exists
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
 
       - name: Debug Show last 20 lines of main.bicep
         run: tail -n 20 infra/main.bicep
