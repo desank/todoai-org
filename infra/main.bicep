@@ -176,19 +176,19 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           env: [
             {
               name: 'POSTGRES_HOST'
-              secretRef: 'POSTGRES_HOST'
+              secretRef: 'postgres-host'
             }
             {
               name: 'POSTGRES_DB'
-              secretRef: 'POSTGRES_DB'
+              secretRef: 'postgres-db'
             }
             {
               name: 'POSTGRES_USER'
-              secretRef: 'POSTGRES_USER'
+              secretRef: 'postgres-user'
             }
             {
               name: 'POSTGRES_PASSWORD'
-              secretRef: 'POSTGRES_PASSWORD'
+              secretRef: 'postgres-password'
             }
           ]
           resources: {
