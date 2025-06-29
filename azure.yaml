@@ -1,0 +1,10 @@
+name: family-todo-app
+services:
+  web:
+    project: ./src/flutter_app
+    language: js
+    host: staticwebapp
+  api:
+    project: ./src/api
+    language: py
+    host: containerapp
