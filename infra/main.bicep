@@ -192,7 +192,7 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
             }
           ]
           resources: {
-            cpu: 0.5
+            cpu: '0.5'
             memory: '1.0Gi'
           }
         }
