@@ -66,6 +66,9 @@ jobs:
           azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
 
+      - name: Debug: Show last 20 lines of main.bicep
+        run: tail -n 20 infra/main.bicep
+
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -131,6 +134,9 @@ jobs:
           azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
           azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
+
+      - name: Debug: Show last 20 lines of main.bicep
+        run: tail -n 20 infra/main.bicep
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
@@ -198,6 +204,9 @@ jobs:
           azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
 
+      - name: Debug: Show last 20 lines of main.bicep
+        run: tail -n 20 infra/main.bicep
+
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -264,6 +273,9 @@ jobs:
           azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
 
+      - name: Debug: Show last 20 lines of main.bicep
+        run: tail -n 20 infra/main.bicep
+
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
@@ -329,6 +341,9 @@ jobs:
           azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
           azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
           azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
+
+      - name: Debug: Show last 20 lines of main.bicep
+        run: tail -n 20 infra/main.bicep
 
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
