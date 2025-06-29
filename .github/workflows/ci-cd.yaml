@@ -90,6 +90,12 @@ jobs:
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
 
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
+
   deploy-test:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test'
     runs-on: ubuntu-latest
@@ -158,6 +164,12 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
 
   deploy-staging:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'
@@ -228,6 +240,12 @@ jobs:
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
 
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
+
   deploy-preprod:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'preprod'
     runs-on: ubuntu-latest
@@ -297,6 +315,12 @@ jobs:
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
 
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
+
   deploy-production:
     if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
     runs-on: ubuntu-latest
@@ -365,3 +389,9 @@ jobs:
           PGPASSWORD: ${{ env.PGPASSWORD }}
         run: |
           psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+
+      - name: Show Bicep version
+        run: az bicep version
+
+      - name: Try bicep build directly
+        run: az bicep build --file infra/main.bicep
