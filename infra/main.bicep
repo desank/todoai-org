@@ -217,4 +217,4 @@ resource staticWebApp 'Microsoft.Web/staticSites@2022-03-01' = {
 }
 
 output STATIC_WEB_APP_URL string = staticWebApp.properties.defaultHostname
-output API_URL string = apiContainerApp.properties.latestRevisionFqdn
+output API_URL string = apiContainerApp.properties.configuration.ingress.fqdn
