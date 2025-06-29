@@ -28,6 +28,9 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: Set AZURE_ENV_NAME from GitHub Environment
+        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -53,10 +56,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
+        run: azd provision --environment ${{ job.environment }}
 
       - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
+        run: azd deploy --environment ${{ job.environment }}
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
@@ -80,6 +83,9 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: Set AZURE_ENV_NAME from GitHub Environment
+        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -105,10 +111,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
+        run: azd provision --environment ${{ job.environment }}
 
       - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
+        run: azd deploy --environment ${{ job.environment }}
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
@@ -132,6 +138,9 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: Set AZURE_ENV_NAME from GitHub Environment
+        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -157,10 +166,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
+        run: azd provision --environment ${{ job.environment }}
 
       - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
+        run: azd deploy --environment ${{ job.environment }}
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
@@ -184,6 +193,9 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: Set AZURE_ENV_NAME from GitHub Environment
+        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -209,10 +221,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
+        run: azd provision --environment ${{ job.environment }}
 
       - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
+        run: azd deploy --environment ${{ job.environment }}
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
@@ -236,6 +248,9 @@ jobs:
       id-token: write
       contents: read
     steps:
+      - name: Set AZURE_ENV_NAME from GitHub Environment
+        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -261,10 +276,10 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
+        run: azd provision --environment ${{ job.environment }}
 
       - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
+        run: azd deploy --environment ${{ job.environment }}
 
       - name: Get PostgreSQL password from Key Vault
         uses: azure/cli@v2
