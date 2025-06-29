@@ -35,7 +35,7 @@ jobs:
         uses: azure/cli@v2
 
       - name: Set up azd
-        uses: azure/azd-install@v1.0.0
+        uses: Azure/setup-azd@v2
 
       - name: azd login (OIDC)
         uses: azure/login@v2
