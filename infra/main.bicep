@@ -75,7 +75,7 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2023-11-01' = {
   properties: {
     version: postgresVersion
     administratorLogin: postgresAdminUsername
-    administratorLoginPassword: listSecret('${keyVault.id}/secrets/postgres-password', '2023-02-01').value
+    administratorLoginPassword: listSecret('${keyVault.id}/secrets/postgres-password', '2024-12-01-preview').value
     storage: {
       storageSizeGB: int(postgresStorageMb / 1024)
     }
