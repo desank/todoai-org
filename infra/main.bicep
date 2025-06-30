@@ -265,5 +265,22 @@ resource frontendWebApp 'Microsoft.Web/sites@2022-03-01' = {
   dependsOn: [frontendAppServicePlan]
 }
 
+// Azure Container Registry for container images
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
+  name: '${environmentName}acr'
+  location: location
+  tags: tags
+  sku: {
+    name: 'Basic'
+  }
+  properties: {
+    adminUserEnabled: false
+    publicNetworkAccess: 'Disabled'
+    networkRuleSet: {
+      defaultAction: 'Allow'
+    }
+  }
+}
+
 output FRONTEND_WEB_APP_URL string = 'https://${frontendWebApp.properties.defaultHostName}'
 output API_URL string = apiContainerApp.properties.configuration.ingress.fqdn
