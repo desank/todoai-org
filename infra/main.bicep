@@ -163,7 +163,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
 resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: '${environmentName}-api'
   location: location
-  tags: tags
+  tags: union(tags, { 'azd-service-name': 'api' })
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
