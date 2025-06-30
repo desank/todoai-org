@@ -267,7 +267,7 @@ resource frontendWebApp 'Microsoft.Web/sites@2022-03-01' = {
 
 // Azure Container Registry for container images
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
-  name: '${environmentName}acr'
+  name: '${toLower(replace(environmentName, '-', ''))}acr'
   location: location
   tags: tags
   sku: {
