@@ -269,7 +269,7 @@ resource frontendWebApp 'Microsoft.Web/sites@2022-03-01' = {
 resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
   name: '${toLower(replace(environmentName, '-', ''))}acr'
   location: location
-  tags: tags
+  tags: union(tags, { 'azd-service-name': 'registry' })
   sku: {
     name: 'Basic'
   }
