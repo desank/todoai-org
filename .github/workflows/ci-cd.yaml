@@ -79,19 +79,19 @@ jobs:
       - name: azd deploy
         run: azd deploy --environment $AZURE_ENV_NAME
 
-      - name: Get PostgreSQL password from Key Vault
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
-            echo "::add-mask::$PGPASSWORD"
-            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
+      # - name: Get PostgreSQL password from Key Vault
+      #   uses: azure/cli@v2
+      #   with:
+      #     inlineScript: |
+      #       export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
+      #       echo "::add-mask::$PGPASSWORD"
+      #       echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
 
-      - name: Run DB schema migration
-        env:
-          PGPASSWORD: ${{ env.PGPASSWORD }}
-        run: |
-          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
+      # - name: Run DB schema migration
+      #   env:
+      #     PGPASSWORD: ${{ env.PGPASSWORD }}
+      #   run: |
+      #     psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
