@@ -79,6 +79,26 @@ resource postgresPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' =
   }
 }
 
+// Private DNS Zone for PostgreSQL Flexible Server
+resource postgresPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
+  name: 'privatelink.postgres.database.azure.com'
+  location: 'global'
+  tags: tags
+}
+
+// Link VNet to Private DNS Zone
+resource vnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
+  name: '${postgresPrivateDnsZone.name}/${environmentName}-vnet-link'
+  location: 'global'
+  properties: {
+    virtualNetwork: {
+      id: vnet.id
+    }
+    registrationEnabled: false
+  }
+  dependsOn: [postgresPrivateDnsZone, vnet]
+}
+
 // PostgreSQL Flexible Server
 resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
   name: '${environmentName}-pg'
@@ -93,6 +113,7 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
     }
     network: {
       delegatedSubnetResourceId: vnet.properties.subnets[0].id
+      privateDnsZoneArmResourceId: postgresPrivateDnsZone.id
     }
     highAvailability: {
       mode: 'Disabled'
