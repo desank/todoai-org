@@ -9,6 +9,9 @@ param postgresSkuName string = 'Standard_B1ms'
 param postgresVersion string = '16'
 param postgresStorageMb int = 32768
 
+// Generate a unique password based on deployment info
+var postgresPassword = '${uniqueString(resourceGroup().id, environmentName)}Pg@${substring(uniqueString(subscription().id), 0, 8)}'
+
 // VNet for the app
 resource vnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {
   name: '${environmentName}-vnet'
@@ -62,8 +65,17 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' = {
     enablePurgeProtection: true
     networkAcls: {
       bypass: 'AzureServices'
-      defaultAction: 'Deny'
+      defaultAction: 'Allow' // Allow during deployment
     }
+  }
+}
+
+// Store the generated password in Key Vault
+resource postgresPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
+  parent: keyVault
+  name: 'postgres-password'
+  properties: {
+    value: postgresPassword
   }
 }
 
@@ -75,7 +87,7 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2023-11-01' = {
   properties: {
     version: postgresVersion
     administratorLogin: postgresAdminUsername
-    administratorLoginPassword: listSecret('${keyVault.id}/secrets/postgres-password', '2024-12-01-preview').value
+    administratorLoginPassword: postgresPassword
     storage: {
       storageSizeGB: int(postgresStorageMb / 1024)
     }
@@ -103,7 +115,7 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2023-11-01' = {
     tier: 'Burstable'
     capacity: 1
   }
-  dependsOn: [keyVault, vnet]
+  dependsOn: [vnet]
 }
 
 // Managed Environment for Container Apps (in appsSubnet)
@@ -196,6 +208,7 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
   }
+  dependsOn: [postgresPasswordSecret]
 }
 
 // Azure App Service Plan for frontend
