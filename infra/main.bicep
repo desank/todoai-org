@@ -127,9 +127,6 @@ resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
       activeDirectoryAuth: 'Disabled'
       passwordAuth: 'Enabled'
     }
-    dataEncryption: {
-      type: 'AzureKeyVault'
-    }
   }
   sku: {
     name: postgresSkuName
