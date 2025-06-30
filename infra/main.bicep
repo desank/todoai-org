@@ -80,7 +80,7 @@ resource postgresPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' =
 }
 
 // PostgreSQL Flexible Server
-resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2023-11-01' = {
+resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
   name: '${environmentName}-pg'
   location: location
   tags: tags
