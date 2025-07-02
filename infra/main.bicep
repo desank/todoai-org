@@ -280,3 +280,4 @@ resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-pr
 
 output FRONTEND_WEB_APP_URL string = 'https://${frontendWebApp.properties.defaultHostName}'
 output API_URL string = apiContainerApp.properties.configuration.ingress.fqdn
+output CONTAINER_REGISTRY_LOGIN_SERVER string = containerRegistry.properties.loginServer
