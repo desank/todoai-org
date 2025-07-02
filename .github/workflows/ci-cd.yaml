@@ -27,8 +27,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    env:
-      AZURE_CONTAINER_REGISTRY_ENDPOINT: https://famtodo${{ github.run_id }}acr.azurecr.io
     steps:
       - name: Set AZURE_ENV_NAME from GitHub Environment
         run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
@@ -78,12 +76,11 @@ jobs:
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
-      - name: Get Container Registry Name from azd output
+      - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_NAME=$(azd env get-output --environment $AZURE_ENV_NAME --output json | jq -r '.containerRegistryName')
-          echo "REGISTRY_NAME=$REGISTRY_NAME" >> $GITHUB_ENV
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_NAME.azurecr.io" >> $GITHUB_ENV
+          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
         run: azd deploy --environment $AZURE_ENV_NAME
@@ -174,12 +171,11 @@ jobs:
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
-      - name: Get Container Registry Name from azd output
+      - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_NAME=$(azd env get-output --environment $AZURE_ENV_NAME --output json | jq -r '.containerRegistryName')
-          echo "REGISTRY_NAME=$REGISTRY_NAME" >> $GITHUB_ENV
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_NAME.azurecr.io" >> $GITHUB_ENV
+          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
         run: azd deploy --environment $AZURE_ENV_NAME
@@ -270,12 +266,11 @@ jobs:
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
-      - name: Get Container Registry Name from azd output
+      - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_NAME=$(azd env get-output --environment $AZURE_ENV_NAME --output json | jq -r '.containerRegistryName')
-          echo "REGISTRY_NAME=$REGISTRY_NAME" >> $GITHUB_ENV
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_NAME.azurecr.io" >> $GITHUB_ENV
+          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
         run: azd deploy --environment $AZURE_ENV_NAME
@@ -366,12 +361,11 @@ jobs:
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
-      - name: Get Container Registry Name from azd output
+      - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_NAME=$(azd env get-output --environment $AZURE_ENV_NAME --output json | jq -r '.containerRegistryName')
-          echo "REGISTRY_NAME=$REGISTRY_NAME" >> $GITHUB_ENV
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_NAME.azurecr.io" >> $GITHUB_ENV
+          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
         run: azd deploy --environment $AZURE_ENV_NAME
@@ -462,12 +456,11 @@ jobs:
       - name: azd provision
         run: azd provision --environment $AZURE_ENV_NAME
 
-      - name: Get Container Registry Name from azd output
+      - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_NAME=$(azd env get-output --environment $AZURE_ENV_NAME --output json | jq -r '.containerRegistryName')
-          echo "REGISTRY_NAME=$REGISTRY_NAME" >> $GITHUB_ENV
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_NAME.azurecr.io" >> $GITHUB_ENV
+          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
         run: azd deploy --environment $AZURE_ENV_NAME
