@@ -79,7 +79,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
@@ -174,7 +174,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
@@ -269,7 +269,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
@@ -364,7 +364,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
@@ -459,7 +459,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output containerRegistryLoginServer)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
