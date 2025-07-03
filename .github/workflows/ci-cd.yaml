@@ -79,7 +79,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
@@ -136,7 +136,7 @@ jobs:
             az --version
 
       - name: Set up azd
-        uses: Azure/azure-dev@v1
+        uses: Azure/setup-azd@v2
 
       - name: azd login (OIDC)
         uses: azure/login@v2
@@ -174,7 +174,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
@@ -231,7 +231,7 @@ jobs:
             az --version
 
       - name: Set up azd
-        uses: Azure/azure-dev@v1
+        uses: Azure/setup-azd@v2
 
       - name: azd login (OIDC)
         uses: azure/login@v2
@@ -269,7 +269,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
@@ -326,7 +326,7 @@ jobs:
             az --version
 
       - name: Set up azd
-        uses: Azure/azure-dev@v1
+        uses: Azure/setup-azd@v2
 
       - name: azd login (OIDC)
         uses: azure/login@v2
@@ -364,7 +364,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
@@ -421,7 +421,7 @@ jobs:
             az --version
 
       - name: Set up azd
-        uses: Azure/azure-dev@v1
+        uses: Azure/setup-azd@v2
 
       - name: azd login (OIDC)
         uses: azure/login@v2
@@ -459,7 +459,7 @@ jobs:
       - name: Get Container Registry Login Server from azd output
         id: get_registry
         run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER)
+          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
           echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
 
       - name: azd deploy
