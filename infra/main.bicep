@@ -139,14 +139,13 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01'
       internal: false
       infrastructureSubnetId: vnet.properties.subnets[0].id
     }
-    appLogsConfiguration:
-      {
-        destination: 'log-analytics'
-        logAnalyticsConfiguration: {
-          customerId: logAnalyticsWorkspace.properties.customerId
-          sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
-        }
+    appLogsConfiguration: {
+      destination: 'log-analytics'
+      logAnalyticsConfiguration: {
+        customerId: logAnalyticsWorkspace.properties.customerId
+        sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
       }
+    }
   }
 }
 
