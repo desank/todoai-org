@@ -4,15 +4,3 @@ services:
     project: ./src/api
     language: py
     host: containerapp
-  web:
-    project: ./src/flutter_app
-    language: js # azd detects Flutter as a JavaScript-based project for Static Web Apps
-    host: staticwebapp
-    hooks:
-      prepackage: # This hook builds the Flutter web app before deployment
-        windows:
-          shell: pwsh
-          run: flutter build web --release
-        posix:
-          shell: sh
-          run: flutter build web --release

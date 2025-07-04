@@ -1,3 +1,4 @@
+
 param environmentName string = 'famtodo-${uniqueString(resourceGroup().id)}'
 param location string = resourceGroup().location
 param tags object = {
@@ -8,6 +9,9 @@ param tags object = {
 param cosmosDbAccountName string = '${environmentName}-cosmos'
 param cosmosDbName string = 'familytodo-db'
 param cosmosContainerName string = 'family_groups'
+
+// Storage Account for Frontend
+param frontendStorageAccountName string = '${toLower(replace(environmentName, '-', ''))}sa'
 
 // VNet for the app (still useful for Container Apps)
 resource vnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {
@@ -69,8 +73,6 @@ resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
     consistencyPolicy: {
       defaultConsistencyLevel: 'Session'
     }
-    // VNet integration for Cosmos DB is more complex and can be added later if needed.
-    // For now, we'll use key-based auth from the container app.
     publicNetworkAccess: 'Enabled'
   }
 }
@@ -95,7 +97,7 @@ resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/con
       id: cosmosContainerName
       partitionKey: {
         paths: [
-          '/id' // Partitioning by family ID is a good starting point
+          '/id'
         ]
         kind: 'Hash'
       }
@@ -122,7 +124,7 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01'
   tags: tags
   properties: {
     vnetConfiguration: {
-      internal: false // Keep it simple for now
+      internal: false
       infrastructureSubnetId: vnet.properties.subnets[0].id
     }
   }
@@ -190,17 +192,30 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   dependsOn: [cosmosDbPrimaryKeySecret]
 }
 
-// Azure Static Web App for the frontend
-resource frontendStaticWebApp 'Microsoft.Web/staticSites@2022-09-01' = {
-  name: '${environmentName}-frontend'
+// Storage Account for Flutter Web App
+resource frontendStorage 'Microsoft.Storage/storageAccounts@2022-09-01' = {
+  name: frontendStorageAccountName
   location: location
-  tags: union(tags, { 'azd-service-name': 'web' })
+  tags: tags
   sku: {
-    name: 'Standard'
-    tier: 'Standard'
+    name: 'Standard_LRS'
   }
+  kind: 'StorageV2'
   properties: {
-    // Configuration for the SWA will be handled by azd
+    accessTier: 'Hot'
+  }
+}
+
+// Enable Static Website Hosting
+resource staticWebsite 'Microsoft.Storage/storageAccounts/blobServices@2022-09-01' = {
+  parent: frontendStorage
+  name: 'default'
+  properties: {
+    staticWebsite: {
+      enabled: true
+      indexDocument: 'index.html'
+      error404Document: 'index.html'
+    }
   }
 }
 
@@ -212,4 +227,5 @@ output COSMOS_DB_ACCOUNT_NAME string = cosmosDbAccount.name
 output COSMOS_DB_NAME string = cosmosDb.name
 output COSMOS_CONTAINER_NAME string = cosmosContainer.name
 output API_URL string = apiContainerApp.properties.configuration.ingress.fqdn
-output FRONTEND_URL string = 'https://${frontendStaticWebApp.properties.defaultHostname}'
+output FRONTEND_STORAGE_ACCOUNT_NAME string = frontendStorage.name
+output FRONTEND_URL string = frontendStorage.properties.primaryEndpoints.web

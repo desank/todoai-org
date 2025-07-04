@@ -1,3 +1,4 @@
+
 name: Azure Developer CLI CI/CD
 
 on:
@@ -37,14 +38,8 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Set up Azure CLI
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az --version
-
-      - name: Set up azd
-        uses: Azure/setup-azd@v2
+      - name: Set up Azure Developer CLI
+        uses: Azure/setup-azd@v1.0.0
 
       - name: Log in to Azure (OIDC)
         uses: azure/login@v1
@@ -58,8 +53,6 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: Create or Update azd environment
-        # NOTE: The AZURE_LOCATION secret must be set to a region that supports all resources in the Bicep template.
-        # Azure Static Web Apps are not available in all regions. See: https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=app-service,static-web-apps
         run: |
           azd env new ${{ github.event.inputs.environment || 'dev' }} --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }} --no-prompt
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
@@ -68,6 +61,15 @@ jobs:
         run: |
           azd provision --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt
 
-      - name: Deploy Application
+      - name: Deploy API
         run: |
-          azd deploy --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt
+          azd deploy api --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt
+
+      - name: Build Flutter Web App
+        working-directory: src/flutter_app
+        run: flutter build web --release
+
+      - name: Upload to Blob Storage
+        run: |
+          FRONTEND_STORAGE_ACCOUNT_NAME=$(azd env get-output FRONTEND_STORAGE_ACCOUNT_NAME --environment ${{ github.event.inputs.environment || 'dev' }} --output json | jq -r .value)
+          az storage blob upload-batch --account-name $FRONTEND_STORAGE_ACCOUNT_NAME --source ./src/flutter_app/build/web --destination \$web --overwrite
