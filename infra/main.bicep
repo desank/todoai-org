@@ -1,4 +1,3 @@
-
 param environmentName string = 'famtodo-${uniqueString(resourceGroup().id)}'
 param location string = resourceGroup().location
 param tags object = {
@@ -53,6 +52,19 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' = {
       bypass: 'AzureServices'
       defaultAction: 'Allow'
     }
+  }
+}
+
+// Azure Container Registry for container images
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
+  name: '${toLower(replace(environmentName, '-', ''))}acr'
+  location: location
+  tags: union(tags, { 'azd-service-name': 'registry' })
+  sku: {
+    name: 'Basic'
+  }
+  properties: {
+    adminUserEnabled: false
   }
 }
 
@@ -127,6 +139,25 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01'
       internal: false
       infrastructureSubnetId: vnet.properties.subnets[0].id
     }
+    appLogsConfiguration:
+      {
+        destination: 'log-analytics'
+        logAnalyticsConfiguration: {
+          customerId: logAnalyticsWorkspace.properties.customerId
+          sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
+        }
+      }
+  }
+}
+
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  name: '${environmentName}-logs'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+    retentionInDays: 30
   }
 }
 
@@ -223,6 +254,7 @@ resource staticWebsite 'Microsoft.Storage/storageAccounts/blobServices@2022-09-0
 output AZURE_LOCATION string = location
 output AZURE_TENANT_ID string = subscription().tenantId
 output AZURE_KEY_VAULT_NAME string = keyVault.name
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.properties.loginServer
 output COSMOS_DB_ACCOUNT_NAME string = cosmosDbAccount.name
 output COSMOS_DB_NAME string = cosmosDb.name
 output COSMOS_CONTAINER_NAME string = cosmosContainer.name
