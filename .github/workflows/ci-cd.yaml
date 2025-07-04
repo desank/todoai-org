@@ -1,4 +1,3 @@
-
 name: Azure Developer CLI CI/CD
 
 on:
@@ -64,8 +63,10 @@ jobs:
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
 
       - name: Provision Infrastructure
+        id: provision_infra # Add an ID to the step to capture outputs
         run: |
-          azd provision --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt
+          PROVISION_OUTPUT=$(azd provision --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt --output json)
+          echo "FRONTEND_STORAGE_ACCOUNT_NAME=$(echo "$PROVISION_OUTPUT" | jq -r '.outputs.FRONTEND_STORAGE_ACCOUNT_NAME.value')" >> $GITHUB_OUTPUT
 
       - name: Deploy API
         run: |
@@ -77,5 +78,5 @@ jobs:
 
       - name: Upload to Blob Storage
         run: |
-          FRONTEND_STORAGE_ACCOUNT_NAME=$(azd env get-output FRONTEND_STORAGE_ACCOUNT_NAME --environment ${{ github.event.inputs.environment || 'dev' }} --output json | jq -r .value)
-          az storage blob upload-batch --account-name $FRONTEND_STORAGE_ACCOUNT_NAME --source ./src/flutter_app/build/web --destination \$web --overwrite
+          STORAGE_ACCOUNT_NAME="${{ steps.provision_infra.outputs.FRONTEND_STORAGE_ACCOUNT_NAME }}"
+          az storage blob upload-batch --account-name "$STORAGE_ACCOUNT_NAME" --source ./src/flutter_app/build/web --destination \$web --overwrite
