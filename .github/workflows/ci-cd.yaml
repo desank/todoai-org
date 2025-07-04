@@ -58,6 +58,8 @@ jobs:
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
       - name: Create or Update azd environment
+        # NOTE: The AZURE_LOCATION secret must be set to a region that supports all resources in the Bicep template.
+        # Azure Static Web Apps are not available in all regions. See: https://azure.microsoft.com/en-us/explore/global-infrastructure/products-by-region/?products=app-service,static-web-apps
         run: |
           azd env new ${{ github.event.inputs.environment || 'dev' }} --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }} --no-prompt
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
