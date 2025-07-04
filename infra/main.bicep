@@ -3,16 +3,13 @@ param location string = resourceGroup().location
 param tags object = {
   Application: 'todoai-org'
 }
-param postgresAdminUsername string = 'pgadmin'
-param postgresDbName string = 'familytodo'
-param postgresSkuName string = 'Standard_B1ms'
-param postgresVersion string = '16'
-param postgresStorageMb int = 32768
 
-// Generate a unique password based on deployment info
-var postgresPassword = '${uniqueString(resourceGroup().id, environmentName)}Pg@${substring(uniqueString(subscription().id), 0, 8)}'
+// Cosmos DB parameters
+param cosmosDbAccountName string = '${environmentName}-cosmos'
+param cosmosDbName string = 'familytodo-db'
+param cosmosContainerName string = 'family_groups'
 
-// VNet for the app
+// VNet for the app (still useful for Container Apps)
 resource vnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {
   name: '${environmentName}-vnet'
   location: location
@@ -25,24 +22,9 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {
     }
     subnets: [
       {
-        name: 'postgresSubnet'
-        properties: {
-          addressPrefix: '10.10.1.0/24'
-          delegations: [
-            {
-              name: 'fsDelegation'
-              properties: {
-                serviceName: 'Microsoft.DBforPostgreSQL/flexibleServers'
-              }
-            }
-          ]
-        }
-      }
-      {
         name: 'appsSubnet'
         properties: {
           addressPrefix: '10.10.2.0/23'
-          // No delegations for ACA subnet
         }
       }
     ]
@@ -65,101 +47,88 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-02-01' = {
     enablePurgeProtection: true
     networkAcls: {
       bypass: 'AzureServices'
-      defaultAction: 'Allow' // Allow during deployment
+      defaultAction: 'Allow'
     }
   }
 }
 
-// Store the generated password in Key Vault
-resource postgresPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
-  parent: keyVault
-  name: 'postgres-password'
-  properties: {
-    value: postgresPassword
-  }
-}
-
-// Private DNS Zone for PostgreSQL Flexible Server
-resource postgresPrivateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
-  name: 'privatelink.postgres.database.azure.com'
-  location: 'global'
-  tags: tags
-}
-
-// Link VNet to Private DNS Zone
-resource vnetLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = {
-  name: '${postgresPrivateDnsZone.name}/${environmentName}-vnet-link'
-  location: 'global'
-  properties: {
-    virtualNetwork: {
-      id: vnet.id
-    }
-    registrationEnabled: false
-  }
-  dependsOn: [postgresPrivateDnsZone, vnet]
-}
-
-// PostgreSQL Flexible Server
-resource postgres 'Microsoft.DBforPostgreSQL/flexibleServers@2024-08-01' = {
-  name: '${environmentName}-pg'
+// Azure Cosmos DB account
+resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2023-04-15' = {
+  name: cosmosDbAccountName
   location: location
   tags: tags
+  kind: 'GlobalDocumentDB'
   properties: {
-    version: postgresVersion
-    administratorLogin: postgresAdminUsername
-    administratorLoginPassword: postgresPassword
-    storage: {
-      storageSizeGB: int(postgresStorageMb / 1024)
+    databaseAccountOfferType: 'Standard'
+    locations: [
+      {
+        locationName: location
+        failoverPriority: 0
+      }
+    ]
+    consistencyPolicy: {
+      defaultConsistencyLevel: 'Session'
     }
-    network: {
-      delegatedSubnetResourceId: vnet.properties.subnets[0].id
-      privateDnsZoneArmResourceId: postgresPrivateDnsZone.id
-    }
-    highAvailability: {
-      mode: 'Disabled'
-    }
-    createMode: 'Default'
-    backup: {
-      backupRetentionDays: 7
-      geoRedundantBackup: 'Disabled'
-    }
-    authentication: {
-      activeDirectoryAuth: 'Disabled'
-      passwordAuth: 'Enabled'
-    }
+    // VNet integration for Cosmos DB is more complex and can be added later if needed.
+    // For now, we'll use key-based auth from the container app.
+    publicNetworkAccess: 'Enabled'
   }
-  sku: {
-    name: postgresSkuName
-    tier: 'Burstable'
-    capacity: 1
-  }
-  dependsOn: [vnet]
 }
 
-// Managed Environment for Container Apps (in appsSubnet)
+// Cosmos DB for NoSQL Database
+resource cosmosDb 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2023-04-15' = {
+  parent: cosmosDbAccount
+  name: cosmosDbName
+  properties: {
+    resource: {
+      id: cosmosDbName
+    }
+  }
+}
+
+// Cosmos DB Container
+resource cosmosContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-04-15' = {
+  parent: cosmosDb
+  name: cosmosContainerName
+  properties: {
+    resource: {
+      id: cosmosContainerName
+      partitionKey: {
+        paths: [
+          '/id' // Partitioning by family ID is a good starting point
+        ]
+        kind: 'Hash'
+      }
+    }
+    options: {
+      throughput: 400
+    }
+  }
+}
+
+// Store the Cosmos DB Primary Key in Key Vault
+resource cosmosDbPrimaryKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-02-01' = {
+  parent: keyVault
+  name: 'cosmos-primary-key'
+  properties: {
+    value: cosmosDbAccount.listKeys().primaryMasterKey
+  }
+}
+
+// Managed Environment for Container Apps
 resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01' = {
   name: '${environmentName}-env'
   location: location
   tags: tags
   properties: {
-    daprAIInstrumentationKey: applicationInsights.properties.InstrumentationKey
     vnetConfiguration: {
-      infrastructureSubnetId: vnet.properties.subnets[1].id
+      internal: false // Keep it simple for now
+      infrastructureSubnetId: vnet.properties.subnets[0].id
     }
   }
 }
 
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
-  name: '${environmentName}-ai'
-  location: location
-  tags: tags
-  kind: 'web'
-  properties: {
-    Application_Type: 'web'
-  }
-}
-
-// API Container App (connects to PostgreSQL via VNet, gets password from Key Vault)
+// API Container App
 resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: '${environmentName}-api'
   location: location
@@ -174,20 +143,12 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
       secrets: [
         {
-          name: 'postgres-host'
-          value: postgres.properties.fullyQualifiedDomainName
+          name: 'cosmos-endpoint'
+          value: cosmosDbAccount.properties.documentEndpoint
         }
         {
-          name: 'postgres-db'
-          value: postgresDbName
-        }
-        {
-          name: 'postgres-user'
-          value: postgresAdminUsername
-        }
-        {
-          name: 'postgres-password'
-          value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/postgres-password)'
+          name: 'cosmos-key'
+          value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/cosmos-primary-key)'
         }
       ]
     }
@@ -198,20 +159,20 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           name: 'api'
           env: [
             {
-              name: 'POSTGRES_HOST'
-              secretRef: 'postgres-host'
+              name: 'COSMOS_ENDPOINT'
+              secretRef: 'cosmos-endpoint'
             }
             {
-              name: 'POSTGRES_DB'
-              secretRef: 'postgres-db'
+              name: 'COSMOS_KEY'
+              secretRef: 'cosmos-key'
             }
             {
-              name: 'POSTGRES_USER'
-              secretRef: 'postgres-user'
+              name: 'COSMOS_DATABASE_NAME'
+              value: cosmosDbName
             }
             {
-              name: 'POSTGRES_PASSWORD'
-              secretRef: 'postgres-password'
+              name: 'COSMOS_CONTAINER_NAME'
+              value: cosmosContainerName
             }
           ]
           resources: {
@@ -226,58 +187,29 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
   }
-  dependsOn: [postgresPasswordSecret]
+  dependsOn: [cosmosDbPrimaryKeySecret]
 }
 
-// Azure App Service Plan for frontend
-resource frontendAppServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: '${environmentName}-frontend-asp'
-  location: location
-  tags: tags
-  sku: {
-    name: 'B1'
-    tier: 'Basic'
-  }
-}
-
-// Azure App Service (Web App) for Flutter frontend
-resource frontendWebApp 'Microsoft.Web/sites@2022-03-01' = {
+// Azure Static Web App for the frontend
+resource frontendStaticWebApp 'Microsoft.Web/staticSites@2022-09-01' = {
   name: '${environmentName}-frontend'
   location: location
-  tags: tags
-  kind: 'app'
-  properties: {
-    serverFarmId: frontendAppServicePlan.id
-    httpsOnly: true
-    siteConfig: {
-      appSettings: [
-        {
-          name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
-          value: 'true'
-        }
-        {
-          name: 'WEBSITE_RUN_FROM_PACKAGE'
-          value: '1'
-        }
-      ]
-    }
-  }
-  dependsOn: [frontendAppServicePlan]
-}
-
-// Azure Container Registry for container images
-resource containerRegistry 'Microsoft.ContainerRegistry/registries@2023-01-01-preview' = {
-  name: '${toLower(replace(environmentName, '-', ''))}acr'
-  location: location
-  tags: union(tags, { 'azd-service-name': 'registry' })
+  tags: union(tags, { 'azd-service-name': 'web' })
   sku: {
-    name: 'Basic'
+    name: 'Standard'
+    tier: 'Standard'
   }
   properties: {
-    adminUserEnabled: false
+    // Configuration for the SWA will be handled by azd
   }
 }
 
-output FRONTEND_WEB_APP_URL string = 'https://${frontendWebApp.properties.defaultHostName}'
+// Outputs for azd
+output AZURE_LOCATION string = location
+output AZURE_TENANT_ID string = subscription().tenantId
+output AZURE_KEY_VAULT_NAME string = keyVault.name
+output COSMOS_DB_ACCOUNT_NAME string = cosmosDbAccount.name
+output COSMOS_DB_NAME string = cosmosDb.name
+output COSMOS_CONTAINER_NAME string = cosmosContainer.name
 output API_URL string = apiContainerApp.properties.configuration.ingress.fqdn
-output CONTAINER_REGISTRY_LOGIN_SERVER string = containerRegistry.properties.loginServer
+output FRONTEND_URL string = 'https://${frontendStaticWebApp.properties.defaultHostname}'

@@ -1,14 +1,16 @@
-name: Azure Family To-Do App CI/CD
+name: Azure Developer CLI CI/CD
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment (dev, test, staging, preprod, production)'
+        description: 'Target environment to deploy to.'
         required: true
         default: 'dev'
         type: choice
@@ -16,481 +18,43 @@ on:
           - dev
           - test
           - staging
-          - preprod
-          - production
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
-  deploy-dev:
-    if: (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev') || github.event_name == 'push'
+  deploy:
     runs-on: ubuntu-latest
-    environment: dev
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Set AZURE_ENV_NAME from GitHub Environment
-        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
+    environment: ${{ github.event.inputs.environment || 'dev' }}
 
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set up Azure CLI
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az --version
-
-      - name: Set up azd
-        uses: Azure/setup-azd@v2
-
-      - name: azd login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
-
-      - name: azd auth login (OIDC)
-        run: >
-          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
-
-      - name: Create azd environment
-        run: |
-          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: Set azd environment variables
-        run: |
-          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
-          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
-          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
-          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
-          azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
-
-      - name: Ensure Resource Group Exists
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
-
-      - name: Get Container Registry Login Server from azd output
-        id: get_registry
-        run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
-
-      - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
-
-      # - name: Get PostgreSQL password from Key Vault
-      #   uses: azure/cli@v2
-      #   with:
-      #     inlineScript: |
-      #       export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
-      #       echo "::add-mask::$PGPASSWORD"
-      #       echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
-
-      # - name: Run DB schema migration
-      #   env:
-      #     PGPASSWORD: ${{ env.PGPASSWORD }}
-      #   run: |
-      #     psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: 'stable'
 
-      - name: Build Flutter Web App
-        working-directory: src/flutter_app
-        run: flutter build web --release
+      - name: Set up Azure Developer CLI
+        uses: Azure/setup-azd@v1.0.0
 
-      - name: Deploy to Azure Web App (Frontend)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
-          slot-name: 'production'
-          package: src/flutter_app/build/web
-
-  deploy-test:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'test'
-    runs-on: ubuntu-latest
-    environment: test
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Set AZURE_ENV_NAME from GitHub Environment
-        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Azure CLI
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az --version
-
-      - name: Set up azd
-        uses: Azure/setup-azd@v2
-
-      - name: azd login (OIDC)
-        uses: azure/login@v2
+      - name: Log in to Azure (OIDC)
+        uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
 
-      - name: azd auth login (OIDC)
-        run: >
+      - name: Authenticate with azd (OIDC)
+        run: |
           azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
 
-      - name: Create azd environment
+      - name: Provision Infrastructure
         run: |
-          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
+          azd provision --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt
 
-      - name: Set azd environment variables
+      - name: Deploy Application
         run: |
-          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
-          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
-          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
-          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
-          azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
-
-      - name: Ensure Resource Group Exists
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
-
-      - name: Get Container Registry Login Server from azd output
-        id: get_registry
-        run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
-
-      - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
-
-      - name: Get PostgreSQL password from Key Vault
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
-            echo "::add-mask::$PGPASSWORD"
-            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
-
-      - name: Run DB schema migration
-        env:
-          PGPASSWORD: ${{ env.PGPASSWORD }}
-        run: |
-          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Build Flutter Web App
-        working-directory: src/flutter_app
-        run: flutter build web --release
-
-      - name: Deploy to Azure Web App (Frontend)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
-          slot-name: 'production'
-          package: src/flutter_app/build/web
-
-  deploy-staging:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging'
-    runs-on: ubuntu-latest
-    environment: staging
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Set AZURE_ENV_NAME from GitHub Environment
-        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Azure CLI
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az --version
-
-      - name: Set up azd
-        uses: Azure/setup-azd@v2
-
-      - name: azd login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
-
-      - name: azd auth login (OIDC)
-        run: >
-          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
-
-      - name: Create azd environment
-        run: |
-          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: Set azd environment variables
-        run: |
-          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
-          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
-          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
-          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
-          azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
-
-      - name: Ensure Resource Group Exists
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
-
-      - name: Get Container Registry Login Server from azd output
-        id: get_registry
-        run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
-
-      - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
-
-      - name: Get PostgreSQL password from Key Vault
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
-            echo "::add-mask::$PGPASSWORD"
-            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
-
-      - name: Run DB schema migration
-        env:
-          PGPASSWORD: ${{ env.PGPASSWORD }}
-        run: |
-          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Build Flutter Web App
-        working-directory: src/flutter_app
-        run: flutter build web --release
-
-      - name: Deploy to Azure Web App (Frontend)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
-          slot-name: 'production'
-          package: src/flutter_app/build/web
-
-  deploy-preprod:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'preprod'
-    runs-on: ubuntu-latest
-    environment: preprod
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Set AZURE_ENV_NAME from GitHub Environment
-        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Azure CLI
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az --version
-
-      - name: Set up azd
-        uses: Azure/setup-azd@v2
-
-      - name: azd login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
-
-      - name: azd auth login (OIDC)
-        run: >
-          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
-
-      - name: Create azd environment
-        run: |
-          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: Set azd environment variables
-        run: |
-          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
-          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
-          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
-          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
-          azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
-
-      - name: Ensure Resource Group Exists
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
-
-      - name: Get Container Registry Login Server from azd output
-        id: get_registry
-        run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
-
-      - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
-
-      - name: Get PostgreSQL password from Key Vault
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
-            echo "::add-mask::$PGPASSWORD"
-            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
-
-      - name: Run DB schema migration
-        env:
-          PGPASSWORD: ${{ env.PGPASSWORD }}
-        run: |
-          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Build Flutter Web App
-        working-directory: src/flutter_app
-        run: flutter build web --release
-
-      - name: Deploy to Azure Web App (Frontend)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
-          slot-name: 'production'
-          package: src/flutter_app/build/web
-
-  deploy-production:
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production'
-    runs-on: ubuntu-latest
-    environment: production
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Set AZURE_ENV_NAME from GitHub Environment
-        run: echo "AZURE_ENV_NAME=${{ vars.AZURE_ENV_NAME }}" >> $GITHUB_ENV
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Azure CLI
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az --version
-
-      - name: Set up azd
-        uses: Azure/setup-azd@v2
-
-      - name: azd login (OIDC)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          enable-AzPSSession: true
-
-      - name: azd auth login (OIDC)
-        run: >
-          azd auth login --client-id ${{ secrets.AZURE_CLIENT_ID }} --tenant-id ${{ secrets.AZURE_TENANT_ID }} --federated-credential-provider github
-
-      - name: Create azd environment
-        run: |
-          azd env new $AZURE_ENV_NAME --no-prompt --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: Set azd environment variables
-        run: |
-          azd env set AZURE_KEYVAULT_NAME ${{ secrets.AZURE_KEYVAULT_NAME }}
-          azd env set POSTGRES_HOST ${{ secrets.POSTGRES_HOST }}
-          azd env set POSTGRES_DB ${{ secrets.POSTGRES_DB }}
-          azd env set POSTGRES_USER ${{ secrets.POSTGRES_USER }}
-          azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
-
-      - name: Ensure Resource Group Exists
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            az group create --name ${{ vars.AZURE_RESOURCE_GROUP }} --location ${{ secrets.AZURE_LOCATION }}
-
-      - name: azd provision
-        run: azd provision --environment $AZURE_ENV_NAME
-
-      - name: Get Container Registry Login Server from azd output
-        id: get_registry
-        run: |
-          REGISTRY_LOGIN_SERVER=$(azd env get-output CONTAINER_REGISTRY_LOGIN_SERVER --environment $AZURE_ENV_NAME --output json | jq -r .value)
-          echo "AZURE_CONTAINER_REGISTRY_ENDPOINT=https://$REGISTRY_LOGIN_SERVER" >> $GITHUB_ENV
-
-      - name: azd deploy
-        run: azd deploy --environment $AZURE_ENV_NAME
-
-      - name: Get PostgreSQL password from Key Vault
-        uses: azure/cli@v2
-        with:
-          inlineScript: |
-            export PGPASSWORD=$(az keyvault secret show --vault-name ${{ env.AZURE_KEYVAULT_NAME }} --name postgres-password --query value -o tsv)
-            echo "::add-mask::$PGPASSWORD"
-            echo "PGPASSWORD=$PGPASSWORD" >> $GITHUB_ENV
-
-      - name: Run DB schema migration
-        env:
-          PGPASSWORD: ${{ env.PGPASSWORD }}
-        run: |
-          psql "host=${{ env.POSTGRES_HOST }} dbname=${{ env.POSTGRES_DB }} user=${{ env.POSTGRES_USER }} password=${{ env.PGPASSWORD }} sslmode=require" -f src/api/db_schema.sql
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-
-      - name: Build Flutter Web App
-        working-directory: src/flutter_app
-        run: flutter build web --release
-
-      - name: Deploy to Azure Web App (Frontend)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_ENV_NAME }}-frontend
-          slot-name: 'production'
-          package: src/flutter_app/build/web
+          azd deploy --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt

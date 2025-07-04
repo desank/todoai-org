@@ -1,26 +1,59 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
-// Provider for tasks (real-time updates)
-final tasksProvider = StreamProvider.autoDispose<List<Map<String, dynamic>>>((ref) {
-  final supabase = Supabase.instance.client;
-  final userId = supabase.auth.currentUser?.id;
+// --- Models ---
+class Task {
+  final String taskId;
+  final String title;
+  final String? description;
+  final bool isCompleted;
 
-  if (userId == null) {
-    return Stream.value([]);
+  Task({
+    required this.taskId,
+    required this.title,
+    this.description,
+    required this.isCompleted,
+  });
+
+  factory Task.fromJson(Map<String, dynamic> json) {
+    return Task(
+      taskId: json['task_id'],
+      title: json['title'],
+      description: json['description'],
+      isCompleted: json['is_completed'],
+    );
   }
+}
 
-  // TODO: Dynamically fetch family_group_id for the user
-  return supabase
-      .from('tasks')
-      .stream(primaryKey: ['id'])
-      .order('due_date', ascending: true)
-      .limit(100)
-      .eq('family_group_id', 'YOUR_FAMILY_GROUP_ID_FOR_MVP_OR_FETCH_DYNAMICALLY') // <-- Replace dynamically
-      .map((data) => data);
+// --- API Service ---
+class ApiService {
+  // TODO: Replace with your deployed API URL
+  final String _baseUrl = "http://127.0.0.1:8000"; 
+
+  Future<List<Task>> getTasks(String familyId) async {
+    final response = await http.get(Uri.parse('$_baseUrl/family/$familyId/tasks'));
+
+    if (response.statusCode == 200) {
+      List<dynamic> tasksJson = json.decode(response.body);
+      return tasksJson.map((json) => Task.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load tasks');
+    }
+  }
+}
+
+// --- Providers ---
+final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
+
+final tasksProvider = FutureProvider.autoDispose<List<Task>>((ref) async {
+  // Hardcoded family ID for now. In a real app, this would come from auth.
+  const familyId = "some-family-id"; 
+  return ref.watch(apiServiceProvider).getTasks(familyId);
 });
 
+// --- UI ---
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -31,21 +64,13 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Family To-Do'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await Supabase.instance.client.auth.signOut();
-            },
-          ),
-        ],
       ),
       body: tasksAsyncValue.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
         data: (tasks) {
           if (tasks.isEmpty) {
-            return const Center(child: Text('No tasks yet! Add one.'));
+            return const Center(child: Text('No tasks yet!'));
           }
           return ListView.builder(
             itemCount: tasks.length,
@@ -54,23 +79,14 @@ class HomeScreen extends ConsumerWidget {
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
-                  title: Text(task['title']),
-                  subtitle: Text(
-                    'Assigned to: {task['assigned_to'] ?? 'Unassigned'}'
-                    '{task['due_date'] != null ? ' - Due: {DateTime.parse(task['due_date']).toLocal().toShortDateString()}' : ''}',
-                  ),
+                  title: Text(task.title),
+                  subtitle: Text(task.description ?? ''),
                   trailing: Checkbox(
-                    value: task['is_completed'] ?? false,
-                    onChanged: (bool? newValue) async {
-                      await Supabase.instance.client
-                          .from('tasks')
-                          .update({'is_completed': newValue})
-                          .eq('id', task['id']);
+                    value: task.isCompleted,
+                    onChanged: (bool? newValue) {
+                      // TODO: Implement update task functionality
                     },
                   ),
-                  onTap: () {
-                    // TODO: Navigate to task detail/edit screen
-                  },
                 ),
               );
             },
@@ -84,12 +100,5 @@ class HomeScreen extends ConsumerWidget {
         child: const Icon(Icons.add),
       ),
     );
-  }
-}
-
-// Extension for simple date formatting
-extension DateTimeExtension on DateTime {
-  String toShortDateString() {
-    return '{day.toString().padLeft(2, '0')}/{month.toString().padLeft(2, '0')}/{year.toString().substring(2)}';
   }
 }
