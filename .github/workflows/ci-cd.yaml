@@ -66,6 +66,7 @@ jobs:
         id: provision_infra # Add an ID to the step to capture outputs
         run: |
           PROVISION_OUTPUT=$(azd provision --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt --output json)
+          echo "Raw azd provision output: $PROVISION_OUTPUT"
           echo "FRONTEND_STORAGE_ACCOUNT_NAME=$(echo "$PROVISION_OUTPUT" | jq -r '.outputs.FRONTEND_STORAGE_ACCOUNT_NAME.value')" >> $GITHUB_OUTPUT
 
       - name: Deploy API
@@ -78,5 +79,6 @@ jobs:
 
       - name: Upload to Blob Storage
         run: |
+          set -x
           STORAGE_ACCOUNT_NAME="${{ steps.provision_infra.outputs.FRONTEND_STORAGE_ACCOUNT_NAME }}"
           az storage blob upload-batch --account-name "$STORAGE_ACCOUNT_NAME" --source ./src/flutter_app/build/web --destination \$web --overwrite
