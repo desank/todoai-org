@@ -60,6 +60,7 @@ jobs:
       - name: Create or Update azd environment
         run: |
           azd env new ${{ github.event.inputs.environment || 'dev' }} --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }} --location ${{ secrets.AZURE_LOCATION }} --no-prompt
+          azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
 
       - name: Provision Infrastructure
         run: |
