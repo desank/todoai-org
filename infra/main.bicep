@@ -139,13 +139,14 @@ resource containerAppsEnvironment 'Microsoft.App/managedEnvironments@2023-05-01'
       internal: false
       infrastructureSubnetId: vnet.properties.subnets[0].id
     }
-    appLogsConfiguration: {
-      destination: 'log-analytics'
-      logAnalyticsConfiguration: {
-        customerId: logAnalyticsWorkspace.properties.customerId
-        sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
+    appLogsConfiguration:
+      {
+        destination: 'log-analytics'
+        logAnalyticsConfiguration: {
+          customerId: logAnalyticsWorkspace.properties.customerId
+          sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
+        }
       }
-    }
   }
 }
 
@@ -165,6 +166,9 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
   name: '${environmentName}-api'
   location: location
   tags: union(tags, { 'azd-service-name': 'api' })
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     managedEnvironmentId: containerAppsEnvironment.id
     configuration: {
@@ -220,6 +224,17 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
     }
   }
   dependsOn: [cosmosDbPrimaryKeySecret]
+}
+
+// Grant the Container App pull access to the Container Registry
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(containerRegistry.id, apiContainerApp.id, 'AcrPull')
+  scope: containerRegistry
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951a01-0976-43e6-920b-b9d85b26c80d') // AcrPull role
+    principalId: apiContainerApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
 }
 
 // Storage Account for Flutter Web App
