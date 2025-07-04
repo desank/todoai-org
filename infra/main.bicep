@@ -186,6 +186,12 @@ resource apiContainerApp 'Microsoft.App/containerApps@2023-05-01' = {
           value: '@Microsoft.KeyVault(SecretUri=${keyVault.properties.vaultUri}secrets/cosmos-primary-key)'
         }
       ]
+      registries: [
+        {
+          server: containerRegistry.properties.loginServer
+          identity: 'system'
+        }
+      ]
     }
     template: {
       containers: [
