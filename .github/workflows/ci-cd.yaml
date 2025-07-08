@@ -80,5 +80,5 @@ jobs:
       - name: Upload to Blob Storage
         run: |
           set -x
-          FRONTEND_STORAGE_ACCOUNT_NAME=$(azd env get-output FRONTEND_STORAGE_ACCOUNT_NAME --environment ${{ github.event.inputs.environment || 'dev' }})
+          FRONTEND_STORAGE_ACCOUNT_NAME=$(azd env get-output FRONTEND_STORAGE_ACCOUNT_NAME)
           az storage blob upload-batch --account-name "$FRONTEND_STORAGE_ACCOUNT_NAME" --source ./src/flutter_app/build/web --destination \$web --overwrite
