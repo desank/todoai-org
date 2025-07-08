@@ -70,6 +70,14 @@ jobs:
         run: |
           azd deploy api --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt
 
+      - name: Set API URL
+        run: |
+          echo "API_URL=$(azd env get-value API_URL)" >> $GITHUB_ENV
+
+      - name: Generate Flutter API config
+        run: |
+          echo "const String apiUrl = '${API_URL}';" > src/flutter_app/lib/api_config.dart
+
       - name: Build Flutter Web App
         working-directory: src/flutter_app
         run: flutter build web --release

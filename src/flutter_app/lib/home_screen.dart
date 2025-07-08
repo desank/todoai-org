@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'api_config.dart';
 
 // --- Models ---
 class Task {
@@ -29,8 +30,8 @@ class Task {
 
 // --- API Service ---
 class ApiService {
-  // TODO: Replace with your deployed API URL
-  final String _baseUrl = "http://127.0.0.1:8000"; 
+  // Use the injected API URL from api_config.dart
+  final String _baseUrl = apiUrl; 
 
   Future<List<Task>> getTasks(String familyId) async {
     final response = await http.get(Uri.parse('$_baseUrl/family/$familyId/tasks'));
