@@ -77,13 +77,14 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
+      - name: Set Storage Account Name
+        run: |
+          echo "FRONTEND_STORAGE_ACCOUNT_NAME=$(azd env get-value FRONTEND_STORAGE_ACCOUNT_NAME)" >> $GITHUB_ENV
+
       - name: Ensure Static Website Hosting is Enabled
         run: |
           az storage blob service-properties update --account-name "$FRONTEND_STORAGE_ACCOUNT_NAME" --static-website --index-document index.html --404-document index.html --auth-mode login
 
       - name: Upload to Blob Storage
         run: |
-          set -x
-          FRONTEND_STORAGE_ACCOUNT_NAME=$(azd env get-value FRONTEND_STORAGE_ACCOUNT_NAME)
-          az storage blob service-properties update --account-name "$FRONTEND_STORAGE_ACCOUNT_NAME" --static-website --index-document index.html --404-document index.html --auth-mode login
           az storage blob upload-batch --account-name "$FRONTEND_STORAGE_ACCOUNT_NAME" --source ./src/flutter_app/build/web --destination \$web --overwrite --auth-mode login
