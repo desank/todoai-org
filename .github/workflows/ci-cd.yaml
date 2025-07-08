@@ -63,12 +63,8 @@ jobs:
           azd env set AZURE_RESOURCE_GROUP ${{ vars.AZURE_RESOURCE_GROUP }}
 
       - name: Provision Infrastructure
-        id: provision_infra # Add an ID to the step to capture outputs
         run: |
-          azd provision --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt --output json > azd_provision_output.json
-          PROVISION_OUTPUT=$(cat azd_provision_output.json)
-          echo "Raw azd provision output: $PROVISION_OUTPUT"
-          echo "FRONTEND_STORAGE_ACCOUNT_NAME=$(echo "$PROVISION_OUTPUT" | jq -r '.outputs.FRONTEND_STORAGE_ACCOUNT_NAME.value')" >> $GITHUB_OUTPUT
+          azd provision --environment ${{ github.event.inputs.environment || 'dev' }} --no-prompt
 
       - name: Deploy API
         run: |
@@ -78,8 +74,11 @@ jobs:
         working-directory: src/flutter_app
         run: flutter build web --release
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Upload to Blob Storage
         run: |
           set -x
-          STORAGE_ACCOUNT_NAME="${{ steps.provision_infra.outputs.FRONTEND_STORAGE_ACCOUNT_NAME }}"
-          az storage blob upload-batch --account-name "$STORAGE_ACCOUNT_NAME" --source ./src/flutter_app/build/web --destination \$web --overwrite
+          FRONTEND_STORAGE_ACCOUNT_NAME=$(azd env get-output FRONTEND_STORAGE_ACCOUNT_NAME --environment ${{ github.event.inputs.environment || 'dev' }})
+          az storage blob upload-batch --account-name "$FRONTEND_STORAGE_ACCOUNT_NAME" --source ./src/flutter_app/build/web --destination \$web --overwrite
