@@ -81,6 +81,12 @@ jobs:
         run: |
           echo "FRONTEND_STORAGE_ACCOUNT_NAME=$(azd env get-value FRONTEND_STORAGE_ACCOUNT_NAME)" >> $GITHUB_ENV
 
+      - name: Assign Storage Blob Data Contributor Role
+        run: |
+          az ad sp show --id ${{ secrets.AZURE_CLIENT_ID }} || az ad sp create --id ${{ secrets.AZURE_CLIENT_ID }}
+          STORAGE_ACCOUNT_ID=$(az storage account show --name "$FRONTEND_STORAGE_ACCOUNT_NAME" --query id -o tsv)
+          az role assignment create --assignee ${{ secrets.AZURE_CLIENT_ID }} --role "Storage Blob Data Contributor" --scope "$STORAGE_ACCOUNT_ID" || true
+
       - name: Ensure Static Website Hosting is Enabled
         run: |
           az storage blob service-properties update --account-name "$FRONTEND_STORAGE_ACCOUNT_NAME" --static-website --index-document index.html --404-document index.html --auth-mode login
